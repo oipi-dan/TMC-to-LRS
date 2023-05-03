@@ -42,6 +42,7 @@ def project_input_data():
     arcpy.Project_management(config._OVERLAP_LRS, config.OVERLAP_LRS, config.VIRGINIA_LAMBERT)
 
     print(f'  Projecting the LRS Intersections')
+    arcpy.Project_management(config._INTERSECTIONS, config.INTERSECTIONS, config.VIRGINIA_LAMBERT)
 
 
 def setup():
