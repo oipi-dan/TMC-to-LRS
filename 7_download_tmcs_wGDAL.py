@@ -17,8 +17,7 @@ def get_tmcs(output_csv=None):
     except FileNotFoundError:
         key = input('key.json not found.  Please enter PDA API key: ')
         params = {"key": key}
-    print(params)
-    input()
+        
     data = {
         'dataSourceId': 'inrix_tmc',
         # 'tmc': ['101+12345']
