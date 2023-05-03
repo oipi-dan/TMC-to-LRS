@@ -10,5 +10,6 @@
 "C:\ArcGIS_Python\arcgispro-py3-fourquet\python.exe" 45_identify_routes_detailed.py
 "C:\ArcGIS_Python\arcgispro-py3-fourquet\python.exe" 50_flip_detailed_results.py
 "C:\ArcGIS_Python\arcgispro-py3-fourquet\python.exe" 55_QC_detailed_results.py
+"C:\ArcGIS_Python\arcgispro-py3-fourquet\python.exe" 60_combine_all_results.py
 
 pause

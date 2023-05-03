@@ -10,8 +10,15 @@ import lrs_tools
 def get_tmcs(output_csv=None):
     print('  Pulling TMC data from PDA API')
     url = f'http://pda-api.ritis.org:8080/tmc/search'
-    with open('key.json') as key:
-        params = json.load(key) # {"key": "key-value"}
+
+    try:
+        with open('key.json') as key:
+            params = json.load(key) # {"key": "key-value"}
+    except FileNotFoundError:
+        key = input('key.json not found.  Please enter PDA API key: ')
+        params = {"key": key}
+    print(params)
+    input()
     data = {
         'dataSourceId': 'inrix_tmc',
         # 'tmc': ['101+12345']
@@ -189,4 +196,4 @@ if __name__ == '__main__':
     print('\nDownloading TMCs')      
     tmc_df = get_tmcs(output_csv='data\\TMCs.csv')  # Download tmcs from api
     create_tmc_geometry(tmc_df)
-    create_tmc_feature_class(tmc_df, r'C:\Users\daniel.fourquet\Documents\Tasks\TMC-to-LRS\data')
+    create_tmc_feature_class(tmc_df, 'data')
