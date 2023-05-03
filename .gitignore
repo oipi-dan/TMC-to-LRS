@@ -4,3 +4,4 @@ logs
 pro
 test.py
 *.pyc
+temp.bat

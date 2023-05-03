@@ -54,21 +54,6 @@ def is_similar_shape(geom1, geom2, normalized=False):
         return False, hausdorff
 
 
-def is_similar_shape_MSE(testGeom, sourceGeom):
-    distances = []
-    for part in testGeom:
-        for point in part:
-            point = arcpy.PointGeometry(point, arcpy.SpatialReference(3969))
-            distances.append(point.distanceTo(sourceGeom)**2)
-
-
-    sum_distances = sum(distances)
-    
-    mse = sum_distances / testGeom.length
-
-    is_similar_shape = True if mse < 1.5 else False
-    return is_similar_shape, mse
-
 def get_bearing(begin, end):
     return round(begin.angleAndDistanceTo(end, 'PLANAR')[0])
 
@@ -140,7 +125,7 @@ def get_confidence_score(tmc, TMCGeom, conflationGeom):
     # Check if input conflation geometry exists
     if not conflationGeom:
         log.debug('    No valid conflation geometry.')
-        return False, False, 999.9, False, 0
+        return False, False, False, 999.9, False, 0
 
     TMCLen = round(TMCGeom.getLength(), 2)
     conflationLen = round(conflationGeom.getLength(), 2)
@@ -153,7 +138,8 @@ def get_confidence_score(tmc, TMCGeom, conflationGeom):
     isSimilarLength = True if 0.75 <= totalLengthRatio <= 1.25 else False
     
     # Shape
-    isSimilarShape, MSE = is_similar_shape_MSE(conflationGeom, TMCGeom)
+    isSimilarShape, hausdorffDistance = is_similar_shape(conflationGeom, TMCGeom)
+    isSimilarShapeNormalized, hausorffDistanceNormalized = is_similar_shape(conflationGeom, TMCGeom, normalized=True)
     
     # Location
     XDCentroid = arcpy.PointGeometry(TMCGeom.centroid, arcpy.SpatialReference(3969))
@@ -174,6 +160,7 @@ def get_confidence_score(tmc, TMCGeom, conflationGeom):
         0 if totalLengthDifference < 100 else 0.1,
         0 if isSimilarLength else 0.3,
         0 if isSimilarShape else 0.3,
+        0 if isSimilarShapeNormalized else 0.3,
         0 if centroidDifference < 100 else 0.1,
         0 if isSimilarBearing else 0
     ]
@@ -194,7 +181,8 @@ def get_confidence_score(tmc, TMCGeom, conflationGeom):
     log.debug(f'        isSimilarLength: {isSimilarLength}')
 
     log.debug(f'\n      Shape Comparison:')
-    log.debug(f'        isSimilarShape: {isSimilarShape} (MSE: {MSE}m)')
+    log.debug(f'        isSimilarShape: {isSimilarShape} (hausdorff distance: {hausdorffDistance}m)')
+    log.debug(f'        isSimilarShapeNormalized: {isSimilarShapeNormalized} (normalized hausdorff distance: {hausorffDistanceNormalized}m)')
 
     log.debug(f'\n      Location Comparison:')
     log.debug(f'        TMC Centroid: {XDCentroid.firstPoint.X}, {XDCentroid.firstPoint.Y}')
@@ -210,7 +198,7 @@ def get_confidence_score(tmc, TMCGeom, conflationGeom):
     log.debug(f'\n      Subtraction List: {subtraction}')
     log.debug(f'  Confidence Score: {finalScore}')
 
-    return isSimilarLength, isSimilarShape, centroidDifference, isSimilarBearing, finalScore
+    return isSimilarLength, isSimilarShape, isSimilarShapeNormalized, centroidDifference, isSimilarBearing, finalScore
 
 
 def run_AutoQC(conflationName, feature_class=None):
@@ -254,19 +242,20 @@ def run_AutoQC(conflationName, feature_class=None):
         TMCGeom = TMCGeomDict[tmc]
         ConflationGeom = ConflationGeomDict[tmc]
 
-        isSimilarLength, isSimilarShape, centroidDifference, isSimilarBearing, confidence = get_confidence_score(tmc, TMCGeom, ConflationGeom)
+        isSimilarLength, isSimilarShape, isSimilarShapeNormalized, centroidDifference, isSimilarBearing, confidence = get_confidence_score(tmc, TMCGeom, ConflationGeom)
 
         record = {
             'tmc': tmc,
             'isSimilarLength': isSimilarLength,
             'isSimilarShape': isSimilarShape,
+            'isSimilarShapeNormalized': isSimilarShapeNormalized,
             'centroidDifference': centroidDifference,
             'isSimilarBearing': isSimilarBearing,
             'confidence': confidence
         }
 
         output.append(record)
-        lrs_tools.print_progress_bar(i+1, len(tmcs), 'Comparing conflation geometry to source geometry')
+        lrs_tools.print_progress_bar(i, len(tmcs), 'Comparing conflation geometry to source geometry')
 
     outputCSV = f'data//{conflationName}_AutoQC.csv'
     print(f'  Saving output CSV to {outputCSV}')    

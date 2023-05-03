@@ -35,6 +35,9 @@ def project_input_data():
     print(f'  Projecting the Master LRS')
     arcpy.Project_management(config._MASTER_LRS, config.MASTER_LRS, config.VIRGINIA_LAMBERT)
 
+    print('  Creating shapefile version for GeoPandas')
+    arcpy.FeatureClassToFeatureClass_conversion(config.MASTER_LRS, os.path.join(os.getcwd(), 'data'), 'lrs.shp')
+
     print(f'  Projecting the Overlap LRS')
     arcpy.Project_management(config._OVERLAP_LRS, config.OVERLAP_LRS, config.VIRGINIA_LAMBERT)
 

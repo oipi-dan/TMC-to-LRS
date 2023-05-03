@@ -245,6 +245,8 @@ def run_flip_routes(step_name, sql=None, feature_class=None):
         for row in cur:
             if row[0] in outputEvents and outputEvents[row[0]]['flipped'] == True:
                 oid = row[0]
+                if outputEvents[oid]['rte_nm'] == None:
+                    continue
                 row[1] = outputEvents[oid]['rte_nm']
                 row[2] = outputEvents[oid]['begin_msr']
                 row[3] = outputEvents[oid]['end_msr']

@@ -114,7 +114,6 @@ def identify_routes_detailed(*test_TMCs, lyrLRS=None, lyrIntersections=None):
 
     else:
         tmcs = [row[0] for row in arcpy.da.SearchCursor(config.TMCs, 'tmc', 'status is null')]
-        print(f'Number of TMCs: {len(tmcs)}')
 
 
     try:
